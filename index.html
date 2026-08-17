@@ -1,0 +1,806 @@
+<!doctype html>
+<html lang="en-IN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Main Effort — a combined decision game</title>
+<meta name="description" content="Ten rounds. Five directives each. Which combination do you commit to? A flood relief operation scored on seven parameters and one very real headcount.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* THE MAIN EFFORT — styles. Palette and type match the Takshashila design
+   language: wine #620d3c and marigold #f1a222 on near-white, Inter for
+   words and Roboto Mono for metadata, hairline rules, no radius and no
+   shadow anywhere. */
+:root{
+  --wine:#620d3c; --marigold:#f1a222;
+  --bg:#fbf9f6; --panel:#ffffff; --panel-2:#f4efe9; --raise:#efe6dd;
+  --ink:#171413; --ink-70:rgba(23,20,19,.70); --ink-50:rgba(23,20,19,.50); --ink-35:rgba(23,20,19,.35);
+  --line:rgba(23,20,19,.12); --line-strong:rgba(23,20,19,.28);
+  --good:#2f7a52; --danger:#a23325;
+  --disp:'Inter',sans-serif; --body:'Inter',sans-serif; --mono:'Roboto Mono',monospace;
+}
+*{box-sizing:border-box;border-radius:0!important;box-shadow:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);line-height:1.5}
+h1,h2,h3{font-family:var(--disp);font-weight:600;margin:0;letter-spacing:-.01em}
+.num{font-family:var(--mono)}
+.wrap{max-width:780px;margin:0 auto;padding:28px 20px 80px}
+.wrap.wide{max-width:1040px;padding-top:20px;padding-bottom:20px}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--wine)}
+.rule{border:none;border-top:1px solid var(--line);margin:22px 0}
+.btn{font-family:var(--mono);font-size:13px;letter-spacing:.04em;background:var(--wine);color:#fdf3ee;
+  border:none;padding:12px 22px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;touch-action:manipulation}
+.btn:hover, .btn:focus-visible{filter:brightness(1.15);outline:2px solid var(--marigold)}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line-strong)}
+.meta{font-family:var(--mono);font-size:11px;color:var(--ink-50);letter-spacing:.03em}
+.house{font-style:italic;color:var(--wine)}
+
+/* ---- briefing / hero ---- */
+.hero-split{display:grid;grid-template-columns:1.1fr 1fr;gap:40px;margin-top:32px;align-items:start}
+@media(max-width:820px){.hero-split{grid-template-columns:1fr}}
+.lede{font-size:17px;line-height:1.6;color:var(--ink-70)}
+.aside{border-left:2px solid var(--marigold);background:var(--panel-2);padding:16px 18px;margin-top:18px}
+.aside p{font-size:16px;line-height:1.5;margin:0;color:var(--ink)}
+.deftable{width:100%;border-collapse:collapse;font-size:13.5px}
+.deftable td{padding:7px 0;border-top:1px solid var(--line)}
+.deftable td:last-child{text-align:right;font-family:var(--mono)}
+.mixbar{display:flex;height:14px;width:100%;overflow:hidden;border:1px solid var(--line)}
+.mixbar span{display:block;height:100%}
+.mix-legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:10px}
+.mix-key{font-family:var(--mono);font-size:11px;color:var(--ink-70);display:flex;align-items:center;gap:6px}
+.mix-swatch{width:9px;height:9px;flex-shrink:0}
+.factgrid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.fact-fig{font-family:var(--disp);font-size:28px;color:var(--wine);font-weight:600}
+.fact-txt{font-size:13px;color:var(--ink-70);line-height:1.55;margin-top:4px}
+.section-deep{background:var(--panel-2);margin:0 -20px;padding:36px 20px}
+.source{font-family:var(--mono);font-size:10.5px;color:var(--ink-35);margin-top:8px}
+
+/* ---- sticky bar / timeline ---- */
+#bar{position:sticky;top:0;background:rgba(251,249,246,.94);backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--line);z-index:9}
+.bar-in{max-width:780px;margin:0 auto;padding:8px 20px 3px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px}
+.bar-cell .l{font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--ink-50);text-transform:uppercase}
+.bar-cell .v{font-family:var(--mono);font-size:18px;margin-top:1px;color:var(--ink)}
+.gauge{height:4px;background:var(--panel-2);margin-top:5px;position:relative}
+.gauge i{display:block;height:100%;background:var(--good)}
+.gauge i.warn{background:var(--marigold)} .gauge i.danger{background:var(--danger)}
+.gauge b{position:absolute;top:-2px;bottom:-2px;width:1px;background:var(--ink-35)}
+@media(max-width:560px){.bar-in{grid-template-columns:1fr 1fr}.bar-cell:last-child{display:none}}
+.timeline{max-width:780px;margin:0 auto;padding:6px 20px 8px;display:flex;align-items:center}
+.tl-item{flex:1;display:flex;justify-content:center;position:relative;min-width:0}
+.tl-item:not(:first-child)::before{content:'';position:absolute;top:5px;right:50%;width:100%;height:1px;background:var(--line-strong);z-index:0}
+.tl-dot{width:8px;height:8px;background:var(--panel);border:1.5px solid var(--line-strong);z-index:1;flex-shrink:0}
+.tl-dot.done{background:var(--marigold);border-color:var(--marigold)}
+.tl-dot.current{background:var(--wine);border-color:var(--wine)}
+.tl-diamond{width:8px;height:8px;transform:rotate(45deg);border:1.5px solid var(--line-strong);background:var(--panel);z-index:1;flex-shrink:0}
+.tl-diamond.good{background:var(--good);border-color:var(--good)}
+.tl-diamond.warn{background:var(--marigold);border-color:var(--marigold)}
+.tl-diamond.fired{background:var(--danger);border-color:var(--danger)}
+
+/* ---- decision screens ---- */
+.context{font-size:14px;line-height:1.55;color:var(--ink-70);margin:10px 0}
+.slide-grid{display:grid;grid-template-columns:300px 1fr;gap:22px;margin-top:10px;align-items:start}
+@media(max-width:860px){.slide-grid{grid-template-columns:1fr}}
+.directives{background:var(--panel-2);border:1px solid var(--line);padding:12px 14px;margin:10px 0}
+.directives .dl{font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--ink-50);text-transform:uppercase;margin-bottom:7px;display:block}
+.directives ol{margin:0;padding-left:22px;list-style-type:upper-roman}
+.directives li{font-size:12.5px;color:var(--ink-70);line-height:1.5;margin-bottom:5px;padding-left:2px}
+.question{font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--ink-50);text-transform:uppercase;margin:0 0 7px;display:block}
+.cards{display:flex;flex-direction:column;gap:6px}
+.card{text-align:left;background:var(--panel);border:1px solid var(--line);padding:12px 14px;
+  cursor:pointer;display:grid;grid-template-columns:24px 1fr;gap:1px 12px;color:var(--ink);touch-action:manipulation}
+.card:hover, .card:focus-visible{border-color:var(--wine);outline:none}
+.card .k{font-family:var(--mono);color:var(--wine);font-size:11.5px}
+.card .t{font-family:var(--disp);font-size:13.5px;font-weight:600;grid-column:2}
+.card .b{font-size:12px;color:var(--ink-70);grid-column:2;margin-top:1px;line-height:1.4}
+.card.chosen{border-color:var(--marigold);border-width:2px}
+.card.locked{opacity:.4;cursor:default} .card.locked.chosen{opacity:1}
+.confirmbar{margin-top:10px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.wire{margin-top:10px;background:var(--panel-2);border-left:2px solid var(--marigold);padding:12px 14px}
+.wire .src{font-family:var(--mono);font-size:10.5px;color:var(--ink-50);text-transform:uppercase;letter-spacing:.06em}
+.wire p{font-size:14px;line-height:1.55;margin:8px 0 0;color:var(--ink)}
+.fx{display:flex;gap:10px 14px;flex-wrap:wrap;margin-top:10px;font-family:var(--mono);font-size:11.5px}
+.fx span.up{color:var(--good)} .fx span.down{color:var(--danger)}
+.coherence-warn{font-family:var(--mono);font-size:11px;color:var(--danger);background:rgba(162,51,37,.08);padding:6px 10px;margin-top:8px;border-left:2px solid var(--danger)}
+.report{background:var(--panel-2);border:1px solid var(--line);padding:22px}
+.report .fig{font-family:var(--disp);font-size:34px;color:var(--wine);font-weight:600}
+.report h3{font-size:20px;margin-top:6px}
+.report p{font-size:14.5px;color:var(--ink-70);line-height:1.6}
+
+/* ---- review / reveal ---- */
+.stamp{display:inline-block;font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+  padding:5px 10px;border:1px solid var(--line-strong)}
+.stamp.fired{border-color:var(--danger);color:var(--danger)}
+.stamp.good{border-color:var(--wine);color:var(--wine);background:rgba(98,13,60,.06)}
+.stamp.warn{border-color:var(--marigold);color:#8a5c0e}
+.quote{font-family:var(--disp);font-size:19px;line-height:1.4;margin:16px 0;color:var(--ink)}
+table.deftable{width:100%;border-collapse:collapse;font-size:13.5px}
+table.deftable td{padding:6px 0;border-top:1px solid var(--line)}
+table.deftable td:last-child{text-align:right;font-family:var(--mono)}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);margin-top:22px;border:1px solid var(--line)}
+.kpi{background:var(--panel);padding:16px}
+.kpi .f{font-family:var(--disp);font-size:24px;color:var(--ink)}
+.kpi .l{font-family:var(--mono);font-size:10px;color:var(--ink-50);text-transform:uppercase;margin-top:2px}
+.kpi .s{display:block;margin-top:8px;font-family:var(--mono);font-size:11px}
+.v-hit{color:var(--good)} .v-miss{color:var(--danger)}
+.lesson-panel{background:var(--panel-2);border:1px solid var(--line);padding:20px}
+.lesson-panel ol{margin:12px 0 0;padding-left:20px}
+.lesson-panel li{font-size:14px;line-height:1.6;color:var(--ink-70);margin-bottom:10px}
+.lesson-panel li b{color:var(--ink);font-weight:600}
+
+</style>
+</head>
+<body>
+
+<div id="bar" hidden></div>
+<div id="app"></div>
+
+<script>
+/* ============================================================================
+   THE MAIN EFFORT — CONTENT
+   ============================================================================ */
+
+const OP = { name:"Sector Nine flood response, Tarangpur" };
+const TOTAL_CIVILIANS = 120;
+
+const FACTS = [
+  {fig:"120", txt:"Civilians in Tarangpur, six needing urgent medical attention at the outset."},
+  {fig:"Alpha/Bravo/Charlie", txt:"Three ten-person teams, one 3-ton vehicle, a 20-person central reserve, a 5-person medical cell."},
+  {fig:"10", txt:"Rounds. Each presents five directives; you commit to one combination of them, not a single branch."},
+  {fig:"7", txt:"Parameters Command is weighing at once, only some of which you'll see summarised directly."}
+];
+const FACTS_NOTE = "Tarangpur and Sector Nine are invented. The scenario, directives and combinations are adapted from a real tactical-training exercise; the scoring underneath is original and balance-tested.";
+
+const DECISIONS = [
+{ code:"R.01", eyebrow:"0600", title:"The water is rising",
+  context:"A landslide has blocked the main road to Tarangpur. A temporary bridge is currently usable by the 3-ton vehicle but deteriorating. Heavy rain is forecast from 1400.",
+  directives:["Begin evacuation prep with Alpha (10 personnel).","Commit the vehicle to support Alpha's initial movement.","Commit part of the central reserve to Alpha immediately.","Use Charlie to improve information on the bridge and civilian situation while the main effort prepares.","Send Bravo forward with general supplies immediately."],
+  question:"Which combination do you commit to?",
+  options:[
+    { label:"A \u2014 I", body:"Alpha begins evacuation prep alone. Nothing else commits yet.",
+      evac:8, d:{mp:2,oa:1,re:1,iu:-1,dc:2}, res:{general:-5},
+      wire:"Alpha is moving. Nothing else has committed yet, and the bridge window is narrowing regardless." },
+    { label:"B \u2014 I + II", body:"Alpha moves, backed immediately by the vehicle.",
+      evac:14, d:{mp:3,rfa:-3,re:4,sus:-2,iu:-1,dc:3}, res:{general:-10}, vehicle:"committed to Alpha",
+      wire:"The vehicle is now Alpha's. Bravo will have to find another way to move anything." },
+    { label:"C \u2014 III + V", body:"Reserve reinforces Alpha's line while Bravo pushes supplies forward \u2014 two efforts, no recon.",
+      evac:3, d:{mp:0,oa:-2,rfa:-14,re:5,sus:-3,iu:-1,dc:-6}, res:{reserve:-10,general:-55},
+      wire:"Reserve is committed to a task that wasn't yet the main effort, and Bravo is moving without knowing whether the bridge will still be there." },
+    { label:"D \u2014 I + II + IV", body:"Alpha moves with the vehicle behind it, while Charlie gets ahead of the bridge question.",
+      evac:16, d:{mp:7,oa:3,rfa:-4,re:2,sus:-1,iu:-9,dc:8}, res:{general:-15}, vehicle:"committed to Alpha",
+      wire:"Alpha moves, the vehicle backs them, and Charlie is already answering the question the bridge is about to ask you." },
+    { label:"E \u2014 I + III + V", body:"Alpha moves, reinforced by reserve, while Bravo also pushes forward \u2014 three things happening at once.",
+      evac:10, d:{mp:4,oa:-1,rfa:-15,re:6,sus:-3,iu:-1,dc:-5}, res:{reserve:-10,general:-60},
+      wire:"Everything is moving. Not all of it is moving toward the same problem." }
+  ]},
+{ code:"R.02", eyebrow:"0830", title:"The bridge will not wait",
+  context:"The bridge is usable for the vehicle for roughly another 90\u2013120 minutes. Bravo's stocks are adequate for about six hours. The second team is on schedule for 1200.",
+  directives:["Continue Alpha's evacuation while the bridge remains usable.","Move the vehicle to Bravo before bridge access deteriorates.","Use Charlie to support Bravo without taking the vehicle from Alpha.","Commit 5 reserve personnel to accelerate Alpha's evacuation.","Suspend major movement until the second team arrives."],
+  question:"Which combination do you commit to?",
+  options:[
+    { label:"A \u2014 I + III", body:"Alpha keeps moving; Charlie backs up Bravo without touching the vehicle or the reserve.",
+      evac:12, d:{mp:6,oa:2,rfa:-2,re:2,sus:-1,iu:-3,dc:6}, res:{general:-10},
+      wire:"Alpha keeps moving. Charlie is carrying Bravo's problem without asking you for anything new." },
+    { label:"B \u2014 II + III", body:"The vehicle redirects to Bravo while Charlie also supports Bravo \u2014 a full pivot away from Alpha.",
+      evac:2, d:{mp:-3,oa:-1,rfa:-4,re:4,iu:-2,dc:-3}, res:{general:-20},
+      wire:"The vehicle reaches Bravo about the same time the bridge stops being usable for anyone else." },
+    { label:"C \u2014 I + IV", body:"Alpha's evacuation accelerates on five reserve personnel.",
+      evac:15, d:{mp:7,rfa:-9,re:4,sus:-2,iu:-1,dc:2}, res:{reserve:-5,general:-15},
+      wire:"Alpha accelerates. The reserve that bought that speed is not coming back for the next surprise." },
+    { label:"D \u2014 I + III + IV", body:"Alpha accelerates on reserve manpower while Charlie backs Bravo in parallel.",
+      evac:17, d:{mp:4,oa:2,rfa:-9,re:6,sus:-3,iu:-3,dc:2}, res:{reserve:-5,general:-20},
+      wire:"Excellent progress today. The reserve is thinner exactly when the bridge problem is about to change shape." },
+    { label:"E \u2014 V", body:"All major movement is suspended until the second team arrives.",
+      evac:0, d:{mp:-6,oa:-3,rfa:4,re:6,sus:1,dc:-2}, res:{general:-2},
+      wire:"You waited for certainty. The bridge did not wait for you." }
+  ]},
+{ code:"R.03", eyebrow:"1000", title:"The problem moves",
+  context:"The bridge is now unsuitable for the vehicle; foot movement only. Bravo needs about 80 general-supply units. Medical demand is up to ten, still within the medical cell's capacity. The second team is about two hours away.",
+  directives:["Continue concentrating on remaining civilian evacuation.","Use Charlie to support Bravo's emerging flood/supply problem.","Commit part of the central reserve to create relief capacity.","Use the flood-relief equipment package at Bravo's area.","Preserve the reserve and flood package for the second team's arrival."],
+  question:"Which combination do you commit to?",
+  options:[
+    { label:"A \u2014 I + II", body:"Evacuation continues; Charlie takes on Bravo's supply bottleneck.",
+      evac:10, d:{mp:5,oa:2,re:1,iu:-3,dc:5}, res:{general:-15},
+      wire:"Bravo's supply problem improves only partially \u2014 the flood package stayed in reserve." },
+    { label:"B \u2014 I + IV", body:"Evacuation continues; the flood-relief package goes to work at Bravo's area now.",
+      evac:11, d:{mp:3,oa:1,re:1,sus:-1,iu:-1,dc:2}, res:{general:-20},
+      wire:"The bottleneck eases. The specialist package is no longer there for whatever surprises you next." },
+    { label:"C \u2014 II + III", body:"Charlie supports Bravo, backed by ten committed reserve personnel.",
+      evac:4, d:{mp:2,oa:3,rfa:-11,re:4,sus:-3,iu:-1,dc:1}, res:{reserve:-10,general:-35},
+      wire:"Two local problems improve. You reach reinforcement arrival with a much smaller reserve." },
+    { label:"D \u2014 I + II + IV + V", body:"Evacuation continues, Charlie supports Bravo, the flood package is used at Bravo's site \u2014 and also held in reserve for the second team.",
+      evac:2, d:{mp:1,oa:-1,rfa:-2,re:4,sus:-1,dc:-9}, res:{general:-15},
+      wire:"The same flood package was told to be used and preserved in the same order. Command relationships absorb that contradiction until execution collapses." },
+    { label:"E \u2014 V", body:"The reserve and flood-relief package are both held back entirely, untouched, for the second team.",
+      evac:0, d:{mp:-1,oa:1,rfa:5,re:-1,sus:2,dc:3}, res:{general:-2},
+      wire:"You have more options when the second team arrives. Today's bottleneck persists a little longer." }
+  ]}
+];
+const REVIEW_AFTER=[3,6,9];
+DECISIONS.push(
+{ code:"R.04", eyebrow:"1130", title:"Keep something in your pocket",
+  context:"The second team is about 90 minutes away. About 52 civilians remain. The bridge is still unsuitable for the vehicle. There's a 60% chance of heavier rain between 1300 and 1500, before the second team arrives.",
+  directives:["Commit the remaining reserve to accelerate evacuation before the rain.","Keep the central reserve intact.","Move the reserve closer to the threatened area without committing it.","Reassign Charlie as the new central reserve; release the old reserve.","Reduce the evacuation effort until the second team arrives."],
+  question:"Which combination do you commit to?",
+  options:[
+    { label:"A \u2014 I", body:"The entire remaining reserve is committed to push evacuation before the rain.",
+      evac:9, d:{mp:4,oa:1,rfa:-20,re:5,sus:-2,dc:1}, res:{reserve:-20},
+      wire:"Evacuation accelerates. You approach reinforcement arrival with little or no original reserve." },
+    { label:"B \u2014 II", body:"The reserve stays exactly where it is, fully intact, uncommitted.",
+      evac:1, d:{oa:1,rfa:3,re:-1,sus:1,dc:3},
+      wire:"The reserve stays fully intact. So does the problem it might have been used on." },
+    { label:"C \u2014 II + III", body:"The reserve stays uncommitted, but repositions closer to the area most likely to need it.",
+      evac:2, d:{mp:1,oa:4,rfa:5,re:-2,sus:1,dc:5},
+      wire:"You keep the reserve and cut its response time at the same time \u2014 reserve is capability plus accessibility, not just headcount." },
+    { label:"D \u2014 I + IV", body:"The reserve is committed, with Charlie stepping in as a thinner replacement reserve.",
+      evac:8, d:{mp:4,oa:1,rfa:-18,re:4,sus:-2,dc:-2}, res:{reserve:-18},
+      wire:"You still have a small flexible element. It is much weaker than the one you started with." },
+    { label:"E \u2014 III + V", body:"Evacuation slows while the reserve repositions rather than commits.",
+      evac:-3, d:{mp:-3,oa:3,rfa:6,re:-2,sus:2,dc:2},
+      wire:"You reach reinforcement arrival with a strong reserve, and more civilians still waiting." }
+  ]},
+{ code:"R.05", eyebrow:"1300", title:"Help has arrived",
+  context:"The second team arrives \u2014 20 general personnel, 5 medical, bridging capability, more stores. The access problem is now solvable. Bravo asks for the entire second team, without evidence it's the decisive bottleneck.",
+  directives:["Use the second team's specialist capability primarily to restore access.","Transfer the entire evacuation mission to the second team.","Keep Alpha, Bravo and Charlie on existing tasks while the second team handles access.","Commit the original reserve together with the second team.","Keep the entire second team uncommitted as a new reserve."],
+  question:"Which combination do you commit to?",
+  options:[
+    { label:"A \u2014 I + III", body:"The second team fixes access. Alpha, Bravo and Charlie continue exactly what they were already doing.",
+      evac:14, d:{mp:9,oa:2,rfa:3,re:-3,sus:5,iu:1,dc:9}, res:{general:40,medical:20}, vehicle:"restored",
+      wire:"Access improves. Medical demand becomes the dominant specialist problem next." },
+    { label:"B \u2014 II + IV", body:"The second team takes over evacuation outright, reinforced by the entire original reserve.",
+      evac:16, d:{mp:8,oa:-2,rfa:-14,re:3,sus:-2,dc:-1}, res:{reserve:-14,general:60,medical:30}, vehicle:"restored",
+      wire:"Immediate output is high. The force is now concentrated and less flexible than it was an hour ago." },
+    { label:"C \u2014 I + II + III", body:"The second team is told to fix access, take over evacuation, and support the existing teams \u2014 all three, at once.",
+      evac:3, d:{mp:1,oa:-4,rfa:-4,re:4,sus:-1,dc:-11}, res:{general:20,medical:10}, vehicle:"restored (ambiguous command)",
+      wire:"The same team was told to take over evacuation, stay out of it, and fix access \u2014 all at once. Nobody downstream knows whose order to follow." },
+    { label:"D \u2014 III + V", body:"Existing teams continue their work. The entire second team is held back as a fresh, uncommitted reserve.",
+      evac:1, d:{oa:5,rfa:9,re:1,sus:3,dc:3}, res:{general:15,medical:5},
+      wire:"You preserve maximum future capability and leave today's access problem less directly solved." },
+    { label:"E \u2014 I + IV + V", body:"The second team fixes access and is reinforced by the original reserve \u2014 while also being logged as an uncommitted reserve in its entirety.",
+      evac:5, d:{mp:3,oa:-1,rfa:-6,re:2,sus:1,dc:-12}, res:{reserve:-6,general:25,medical:15}, vehicle:"restored",
+      wire:"Specialist bridging happens while the whole team that did it is also logged as uncommitted. The game flags an impossible personnel commitment." }
+  ]}
+);
+DECISIONS.push(
+{ code:"R.06", eyebrow:"1500", title:"The medical bottleneck",
+  context:"Access has improved. Medical demand has risen to 15 (5 needing sustained monitoring). 10 medical personnel are now available in total.",
+  directives:["Concentrate available medical personnel at the main requirement.","Retain some medical capability centrally.","Use general personnel for non-specialist medical logistics.","Push all remaining medical supplies forward immediately.","Stop all non-medical relief activity."],
+  question:"Which combination do you commit to?",
+  options:[
+    { label:"A \u2014 I", body:"All available medical personnel concentrate on the main requirement.",
+      d:{mp:5,oa:-2,rfa:-4,re:2,sus:-3,dc:2}, res:{medical:-25},
+      wire:"Medical output improves. There's no specialist flexibility left anywhere else." },
+    { label:"B \u2014 I + II + III", body:"Medical personnel concentrate on the main requirement, a portion stays central, and general personnel handle logistics.",
+      d:{mp:7,oa:3,rfa:2,re:-3,sus:4,dc:8}, res:{medical:-18,general:-10},
+      wire:"The bottleneck eases without exhausting specialist flexibility \u2014 general manpower did the logistics, not the medics." },
+    { label:"C \u2014 I + IV", body:"Medical personnel concentrate at the main point, and every remaining medical supply is pushed forward with them.",
+      d:{mp:7,rfa:-3,re:3,sus:-4,dc:2}, res:{medical:-40},
+      wire:"Immediate medical output is strong. The supply margin is thin now." },
+    { label:"D \u2014 II + III + IV", body:"Medical capability stays partly central, general personnel carry logistics, and supplies move forward.",
+      d:{mp:4,oa:1,rfa:1,dc:3}, res:{medical:-30,general:-10},
+      wire:"The medical point is well supplied. Central medical stocks are the ones shrinking." },
+    { label:"E \u2014 I + V", body:"Medical personnel concentrate on the bottleneck; everything else in the relief effort stops to make room for it.",
+      d:{mp:2,oa:-3,re:1,sus:1,dc:-3}, res:{medical:-20},
+      wire:"The medical bottleneck improves. The wider relief mission stalled to make room for it." }
+  ]},
+{ code:"R.07", eyebrow:"1700", title:"You are spending tomorrow",
+  context:"About 145 general and 48 medical stores remain. Estimated need for the next 12 hours: roughly 130 general and 40 medical \u2014 a very tight margin. Overnight rain expected. Fatigue is rising.",
+  directives:["Continue at maximum tempo until all remaining evacuation is done.","Complete only the highest-priority remaining movements tonight.","Reduce activity to preserve personnel and supplies for the next 12 hours.","Request additional external replenishment now.","Use remaining medical supplies aggressively while demand is manageable."],
+  question:"Which combination do you commit to?",
+  options:[
+    { label:"A \u2014 I", body:"Maximum tempo \u2014 every remaining evacuation attempted tonight, whatever it costs.",
+      evac:18, d:{mp:9,oa:-3,rfa:-6,re:6,sus:-9,dc:1}, res:{general:-70,medical:-20},
+      wire:"The immediate mission is nearly complete. Tomorrow's resource margin is thin." },
+    { label:"B \u2014 II + III", body:"Only highest-priority movements happen tonight; everything else scales back to preserve the next twelve hours.",
+      evac:9, d:{mp:6,oa:2,rfa:2,re:-3,sus:7,dc:7}, res:{general:-30,medical:-8},
+      wire:"The operation enters the night sustainable. Some work remains." },
+    { label:"C \u2014 II + III + IV", body:"Priority movements only, activity scaled back, and replenishment requested now for what comes next.",
+      evac:9, d:{mp:6,oa:2,rfa:3,re:-3,sus:8,iu:1,dc:8}, res:{general:-30,medical:-8},
+      wire:"You control tempo, preserve resources, and queue replenishment \u2014 sustainable now and covered for what comes next." },
+    { label:"D \u2014 I + IV + V", body:"Maximum tempo tonight, replenishment requested, medical supplies used freely while demand is manageable.",
+      evac:19, d:{mp:10,oa:-4,rfa:-8,re:8,sus:-11,dc:-2}, res:{general:-90,medical:-35},
+      wire:"You may finish tonight. The force enters the next phase with almost nothing left in it." },
+    { label:"E \u2014 III + IV", body:"Activity scales back hard to preserve the next twelve hours, with replenishment already requested.",
+      evac:2, d:{mp:3,re:-4,sus:8,iu:1,dc:4}, res:{general:-15,medical:-3},
+      wire:"A sustainable posture, and some evacuation still waiting." }
+  ]}
+);
+DECISIONS.push(
+{ code:"R.08", eyebrow:"1900", title:"Two reports, one decision",
+  context:"Two contradictory reports have arrived from normally reliable sources \u2014 one says the water is falling, one says localized flooding is rising. About 60 minutes before a major commitment is required. An unverified message claims the bridge has reopened.",
+  directives:["Act immediately on the most recent report.","Use available recon/comms to establish which report is more reliable.","Maintain current disposition while verification is underway.","Move the central reserve toward the northern sector immediately.","Treat the unverified bridge-reopened message as sufficient confirmation."],
+  question:"Which combination do you commit to?",
+  options:[
+    { label:"A \u2014 I", body:"Act now, on whichever report arrived most recently.",
+      evac:3, d:{mp:2,oa:3,rfa:-3,re:5,iu:3,dc:-2}, res:{reserve:-5},
+      wire:"Speed, without resolving which report was actually true." },
+    { label:"B \u2014 II + III", body:"Hold position and use available means to work out which report is actually true before committing anything.",
+      evac:2, d:{mp:2,oa:2,rfa:3,re:-4,sus:2,iu:-9,dc:7}, res:{general:-2},
+      wire:"Verification confirms falling water, with one localized flooded pocket. Information had value because a real decision was waiting on it." },
+    { label:"C \u2014 II + IV", body:"Verify the reports while the reserve is already moving toward the northern sector.",
+      evac:3, d:{mp:3,oa:4,rfa:-3,sus:1,iu:-8,dc:6}, res:{reserve:-5},
+      wire:"You improve the picture and shorten response time, at the cost of positioning part of the reserve." },
+    { label:"D \u2014 I + IV + V", body:"Act immediately, move the reserve north, and treat the unverified bridge-reopened message as confirmed. The movement looks fast even though the underlying mission picture is still unresolved.",
+      evac:15, d:{mp:1,oa:1,rfa:-8,re:8,sus:-4,iu:4,dc:-5}, res:{reserve:-10},
+      wire:"If the report was wrong, several resources now need rapid redirection." },
+    { label:"E \u2014 III + V", body:"Hold current position, while treating the unverified bridge-reopened message as sufficient confirmation.",
+      evac:0, d:{mp:-1,rfa:1,re:1,sus:1,iu:5,dc:-8},
+      wire:"Holding position while treating an unverified message as fact makes your own picture internally inconsistent." }
+  ]}
+);
+DECISIONS.push(
+{ code:"R.09", eyebrow:"2100", title:"The easy victory",
+  context:"The last significant group can be evacuated tonight. Completing everything tonight costs personnel endurance, supplies, vehicle availability and reserve flexibility. The second team can maintain continuity overnight.",
+  directives:["Complete all remaining evacuation tonight regardless of cost.","Complete only the highest-priority remaining movements tonight.","Use the second team to maintain continuity overnight.","Commit the entire remaining reserve.","Preserve the original force for the next operational period."],
+  question:"Which combination do you commit to?",
+  options:[
+    { label:"A \u2014 I", body:"Finish everything tonight, regardless of what it costs the force.",
+      evac:10, d:{mp:4,oa:-3,rfa:-6,re:7,sus:-8,dc:-1}, res:{general:-55,medical:-14},
+      wire:"Nearly complete. Very little margin left going into the transition." },
+    { label:"B \u2014 II + III", body:"Priority movements only tonight, with the second team maintaining continuity overnight.",
+      evac:8, d:{mp:7,oa:2,rfa:2,re:-3,sus:6,dc:7}, res:{general:-25,medical:-7},
+      wire:"The remaining work continues under a sustainable posture." },
+    { label:"C \u2014 II + III + V", body:"Priority movements only, second team on continuity, and the original force explicitly preserved for what comes next.",
+      evac:8, d:{mp:8,oa:4,rfa:5,re:-4,sus:8,dc:9}, res:{general:-25,medical:-7},
+      wire:"Strong continuity and meaningful freedom of action going into the last round \u2014 use the most appropriate capability for the next problem, not the biggest one." },
+    { label:"D \u2014 I + IV", body:"Finish everything tonight, backed by the entire remaining reserve.",
+      evac:10, d:{mp:9,oa:-4,rfa:-20,re:9,sus:-9,dc:-2}, res:{reserve:-20,general:-75,medical:-15},
+      wire:"Almost complete. The force is close to culmination." },
+    { label:"E \u2014 III + IV + V", body:"Second team on continuity, the remaining reserve committed, and the original force also logged as preserved.",
+      evac:7, d:{mp:6,rfa:-10,re:3,sus:1,dc:-3}, res:{reserve:-8,general:-22},
+      wire:"The result depends on whether anyone actually defined who counts as reserve and who's already committed. Nobody did." }
+  ]}
+);
+DECISIONS.push(
+{ code:"R.10", eyebrow:"0600 DAY 2", title:"Before the next wave",
+  context:"Immediate evacuation is essentially complete. Critical medical cases are stable. Local administration is ready but not fully restored. Weather remains unsettled.",
+  directives:["Withdraw all response capability immediately \u2014 the principal mission is complete.","Leave the second team temporarily to maintain specialist capability.","Leave a small medical/relief element during the transition.","Retain the entire force until all residual risk disappears.","Conduct a phased handover while retaining a defined contingency capability."],
+  question:"Which combination do you commit to?",
+  options:[
+    { label:"A \u2014 I", body:"Withdraw everything immediately \u2014 the mission is complete.",
+      d:{mp:3,oa:4,rfa:8,re:3,sus:3,dc:-1},
+      wire:"Force conserved. The civil system inherits less immediate support than it might have." },
+    { label:"B \u2014 II + III", body:"The second team stays briefly for specialist continuity, alongside a small medical and relief element.",
+      d:{mp:7,oa:1,rfa:-3,re:-3,sus:3,dc:5},
+      wire:"The handover is smoother. Some specialist capability stays committed longer than planned." },
+    { label:"C \u2014 III + V", body:"A small medical/relief element stays behind, as part of a phased handover with a clearly defined contingency capability.",
+      d:{mp:9,oa:4,rfa:2,re:-5,sus:5,iu:1,dc:9},
+      wire:"A controlled buffer, and the operation closes safely \u2014 end-state, transition and proportionate reserve, all in the same decision." },
+    { label:"D \u2014 II + IV", body:"The second team stays, and so does the entire remaining force, until every residual risk is gone.",
+      d:{mp:8,oa:-3,rfa:-9,re:-2,sus:-6,dc:0},
+      wire:"Secure, and economically unsustainable \u2014 security without proportionality becomes waste." },
+    { label:"E \u2014 I + III + V", body:"Withdraw everything immediately \u2014 while also leaving an element behind, and retaining contingency capability.",
+      d:{mp:6,oa:1,rfa:1,re:-2,sus:2,dc:-10},
+      wire:"Withdraw all, leave an element, retain contingency \u2014 three instructions in one order, and no one told downstream which one was real." }
+  ]}
+);
+
+const REVIEWS=[
+  { code:"C.01", title:"First check-in",
+    fired:"Command confidence didn't hold at the first check-in. A more senior element is being sent forward to take the operation from here.",
+    fractured:"Your combinations were pulling against each other badly enough that the ops room stepped in before the pattern got worse.",
+    catastrophic:"Risk exposure crossed the line the ops room can't ignore. Control of the operation has been taken from you, effective immediately.",
+    warn:"The duty officer asked twice, in different words, whether the last three rounds actually add up to one operation.",
+    ok:"The check-in was logged and the next one scheduled. Nothing more was said.",
+    good:"The duty officer told the district cell your handling of the opening rounds was exactly the sequence they'd have wanted." },
+  { code:"C.02", title:"Second check-in",
+    fired:"You were told to stand your element down and let a relief command take the operation from here.",
+    fractured:"Too many of today's combinations were quietly working against each other. The ops room noticed before you did.",
+    catastrophic:"Risk exposure is now past the point anything else can offset. Control has been taken from you.",
+    warn:"The duty officer asked whether a more experienced commander should be sent up to advise you.",
+    ok:"The update was accepted without comment, which at this stage counts as confidence.",
+    good:"The ops room has stopped asking you for updates and started asking other sectors what you're doing differently." },
+  { code:"C.03", title:"Final check-in",
+    fired:"With the weather still unsettled and confidence not recovered, the ops room decided it needed a different hand on this.",
+    fractured:"This late, the contradictions in your own combinations caught up with you before the operation did.",
+    catastrophic:"Risk exposure breached the line. Whatever the operation itself achieves, this is where your control of it ends.",
+    warn:"The duty officer asked what you'd tell the families of anyone still unaccounted for, if asked tonight.",
+    ok:"The plan for the final rounds was signed off without changes.",
+    good:"The ops room has asked you to write up this operation for the next commander who inherits a scenario like this one." }
+];
+
+const ENDINGS={
+  relieved1:{tag:"Relieved at the first check-in",head:"Three rounds in, and command confidence didn't hold.",
+    body:"Every combination you chose was individually defensible. Taken together, they hadn't yet produced enough coherent progress to survive a command post already uneasy about how the operation opened.",
+    lesson:"Command confidence reads the whole picture, not any single good combination."},
+  relieved2:{tag:"Relieved at the second check-in",head:"Halfway through, and the composite reading hadn't recovered.",
+    body:"This is where the reading looks worst on any real operation \u2014 the cost of every commitment so far is fully paid, and the payoff hasn't caught up to show for it yet.",
+    lesson:"The middle of a real operation is where confidence is hardest to hold, right when it's hardest to earn back."},
+  relieved3:{tag:"Relieved before the handover",head:"The operation was recovering. You weren't there to close it out.",
+    body:"The work was largely sound. It wasn't visible enough, early enough, for command to keep backing you through to the end.",
+    lesson:"Command confidence has to be held continuously through to the end, not just earned back at the finish."},
+  catastrophic:{tag:"Risk exposure breached the ceiling",head:"The risk nobody was tracking directly decided the operation.",
+    body:"No single combination here was reckless in isolation. What ended it was risk accumulating quietly across rounds, past the point the other six parameters could offset.",
+    lesson:"Risk Exposure can end this on its own \u2014 it's the parameter nobody asks about at a check-in, and the one that doesn't forgive."},
+  fractured:{tag:"Fractured command",head:"Every combination was defensible. Several of them worked against each other.",
+    body:"There's no single decision here you'd struggle to justify on its own terms. The difficulty is concentration \u2014 Decision Coherence collapsed because too many good combinations, taken one at a time, weren't reinforcing the same main effort.",
+    lesson:"Coherence is a sequence property: each decision should reinforce the main effort or deliberately change it, with the transition made explicit."},
+  textbook:{tag:"The textbook operation",head:"Fast, coherent, and the risk stayed managed the whole way through.",
+    body:"Mission Progress and evacuation pace moved together, and the risk behind both of them was deliberately kept down rather than just accepted as the cost of speed.",
+    lesson:"One main effort, supported by mutually reinforcing actions, is what lets real progress and pace improve together without sacrificing coherence or future options."},
+  quiet:{tag:"The quiet operation",head:"Nearly everyone got out. Command barely noticed how, until the after-action review.",
+    body:"You built the operation carefully enough that, by the time it mattered, there wasn't much left to be dramatic about.",
+    lesson:"When visible tempo and real progress diverge, judge the operation by the effect achieved, not by how busy it looks."},
+  gamble:{tag:"The gamble",head:"It looked fast. The evacuation count never caught up to how it looked.",
+    body:"The bold combinations read well round to round. Underneath them, the actual headcount hadn't kept pace \u2014 visible tempo and real evacuation had come apart.",
+    lesson:"Visible tempo without matching mission progress is activity without sufficient effect."},
+  overcautious:{tag:"Too careful, too late",head:"Nothing here was reckless. Not enough people got out in time either.",
+    body:"Every dramatic mistake on this list was avoided, and so was most of what would have actually gotten people out before the rain.",
+    lesson:"Caution has a cost too \u2014 measured in people still waiting when the weather turns."},
+  partial:{tag:"Partial recovery",head:"Some of this worked. Not enough of it added up to one coherent operation.",
+    body:"Individually, most of these combinations were reasonable. Seven parameters and a hundred and twenty people don't resolve into a clean outcome unless the combinations you choose keep reinforcing the same main effort, round after round.",
+    lesson:"A good combination at every single round doesn't guarantee a good sequence of them."}
+};
+
+const LESSONS = [
+  "<b>One main effort, with mutually supporting actions.</b> Concentrate effects rather than merely limiting the number of activities. A supporting action is justified when it enables, protects, informs or sustains the main effort.",
+  "<b>A reserve is capability plus accessibility, not just headcount.</b> Repositioning it can be worth more than committing it outright.",
+  "<b>Match scarce specialist capability to the current bottleneck</b> — not to whichever team asks loudest for it.",
+  "<b>Make commitments explicit.</b> The same asset cannot be simultaneously used and preserved, transferred and retained. Contradictory orders create ambiguous execution.",
+  "<b>Information has value when it changes a decision.</b> Verification is useful when it reduces uncertainty at a real decision point; otherwise information collection can become delay.",
+  "<b>Mass trades against agility.</b> Concentrate force when the decisive point warrants it, not merely because more people are available.",
+  "<b>Sustainability is a current decision.</b> Maximum tempo now can mean insufficient capability when the next surprise arrives.",
+  "<b>Close the operation deliberately.</b> A phased handover with a defined, proportionate contingency capability is better than both premature withdrawal and indefinite retention.",
+  "<b>Build a coherent sequence, not just good individual decisions.</b> Each round should reinforce the main effort, preserve acceptable future options, and avoid undoing earlier commitments.",
+  "<b>Effect beats activity.</b> High tempo is useful only when it produces corresponding mission progress; otherwise the operation can look busy while falling behind."
+];
+
+/* ============================================================================
+   THE MAIN EFFORT — ENGINE
+   ============================================================================ */
+"use strict";
+
+// Adjusted thresholds for tighter strategic trade-offs
+const SAFE_RE=72, DC_FLOOR=40, CC_FLOOR=50, CC_WARN=58, CC_GOOD=65;
+
+const S={};
+function clamp(v,lo,hi){return Math.max(lo,Math.min(hi,v));}
+const $=s=>document.querySelector(s);
+const app=()=>$("#app");
+const toTop=()=>window.scrollTo(0,0);
+
+function reset(){
+  Object.assign(S,{i:0,picks:[],queue:[],awaiting:false,firedAt:null,earlyEndKey:null,selected:null,
+    mp:0, oa:65, rfa:100, re:20, sus:100, iu:80, dc:60,
+    evac:0, reserve:20, general:400, medical:100, vehicle:"usable",
+    reviewBands:[]});
+}
+function commandConfidence(){
+  return clamp(0.25*S.mp+0.10*S.oa+0.15*S.rfa+0.20*(100-S.re)+0.10*S.sus+0.10*(100-S.iu)+0.10*S.dc,0,100);
+}
+function tempo(){
+  return clamp((S.evac/120)*100,0,100);
+}
+function applyChoice(k){
+  const d=DECISIONS[S.i], o=d.options[k], dl=o.d||{}, r=o.res||{};
+  S.picks.push(k);
+  const susDrift = -(1.2 + (100-S.sus)*0.025);
+  S.oa  = clamp(S.oa - 1 + (dl.oa||0), 0, 100);
+  S.re  = clamp(S.re + 1.5 + (dl.re||0), 0, 100);
+  S.sus = clamp(S.sus + susDrift + (dl.sus||0), 0, 100);
+  S.iu  = clamp(S.iu - 1 + (dl.iu||0), 0, 100);
+  S.mp  = clamp(S.mp + (dl.mp||0), 0, 100);
+  S.rfa = clamp(S.rfa + (dl.rfa||0), 0, 100);
+  S.dc  = clamp(S.dc + (dl.dc||0), 0, 100);
+  S.evac = clamp(S.evac + (o.evac||0), 0, 120);
+  
+  // Finite resources: a shortfall degrades the intended effect instead of creating phantom capability.
+  const resources = {reserve:S.reserve, general:S.general, medical:S.medical};
+  let shortfall = 0;
+  Object.keys(resources).forEach(function(name){
+    const delta = r[name] || 0, available = resources[name];
+    if(delta < 0){ const requested=-delta, actual=Math.min(requested,available); shortfall += requested-actual; S[name]=Math.max(0,available-actual); }
+    else if(delta > 0){ S[name] = name==='reserve' ? Math.min(20,available+delta) : available+delta; }
+  });
+  if(shortfall>0){
+    S.mp=clamp(S.mp-Math.min(4,shortfall/20),0,100);
+    S.oa=clamp(S.oa-Math.min(6,shortfall/15),0,100);
+    S.re=clamp(S.re+Math.min(8,shortfall/10),0,100);
+    S.sus=clamp(S.sus-Math.min(8,shortfall/10),0,100);
+    S.dc=clamp(S.dc-Math.min(5,shortfall/15),0,100);
+  }
+  
+  if (o.vehicle) S.vehicle = o.vehicle;
+  return o;
+}
+function finalScores(){
+  const cc=commandConfidence(), t=tempo();
+  let key;
+  if (S.earlyEndKey) key = S.earlyEndKey;
+  else if (S.re>=SAFE_RE) key = "catastrophic";
+  else if (S.dc<=DC_FLOOR) key = "fractured";
+  else if (S.mp>=55 && S.re<=45 && t>=62) key = "textbook";
+  else if (S.mp>=55 && S.re<=45 && t<62) key = "quiet";
+  else if (t>=68 && S.mp<42) key = "gamble";
+  else if (t<35 && S.mp<35) key = "overcautious";
+  else key = "partial";
+  return {cc,t,key};
+}
+function timelineHTML(){
+  const seq=["D1","D2","D3","R1","D4","D5","D6","R2","D7","D8","D9","R3","D10"];
+  let reviewIdx=0;
+  const items=seq.map(tag=>{
+    if(tag[0]==="D"){
+      const idx=parseInt(tag.slice(1))-1;
+      const done=S.picks.length>idx;
+      const cur=idx===S.i && !done;
+      return '<div class="tl-item"><div class="tl-dot '+(done?'done':(cur?'current':''))+'"></div></div>';
+    } else {
+      const rIdx=reviewIdx++; const band=S.reviewBands[rIdx];
+      const cls = !band ? "" : (band==="fired"?"fired":band==="good"?"good":band==="warn"?"warn":"good");
+      return '<div class="tl-item"><div class="tl-diamond '+cls+'"></div></div>';
+    }
+  });
+  return '<div class="timeline">'+items.join("")+'</div>';
+}
+function renderBar(){
+  $("#bar").hidden=false;
+  const cc=commandConfidence();
+  const gc = cc<CC_FLOOR?"danger":cc<CC_WARN?"warn":"";
+  $("#bar").innerHTML='<div class="bar-in">'+
+    '<div class="bar-cell"><div class="l">Civilians evacuated</div><div class="v">'+S.evac+' / 120</div>'+
+      '<div class="gauge"><i style="width:'+clamp(S.evac/120*100,0,100)+'%"></i></div></div>'+
+    '<div class="bar-cell"><div class="l">Risk exposure</div><div class="v">'+Math.round(S.re)+'</div>'+
+      '<div class="gauge"><i class="'+(S.re>=60?'danger':S.re>=40?'warn':'')+'" style="width:'+clamp(S.re,0,100)+'%"></i></div></div>'+
+    '<div class="bar-cell"><div class="l">Command confidence</div><div class="v">'+Math.round(cc)+'</div>'+
+      '<div class="gauge"><i class="'+gc+'" style="width:'+clamp(cc,0,100)+'%"></i><b style="left:'+CC_FLOOR+'%"></b></div></div>'+
+  '</div>'+timelineHTML();
+}
+function screenBrief(){
+  $("#bar").hidden=true;
+  const forceMix=[
+    ["Alpha team",10,"var(--wine)"],
+    ["Bravo team",10,"#b8809f"],
+    ["Charlie team",10,"#8a6a4a"],
+    ["Central reserve",20,"var(--marigold)"],
+    ["Medical cell",5,"#2f6b6b"]
+  ];
+  const forceTotal=forceMix.reduce(function(s,x){return s+x[1];},0);
+  app().innerHTML='<div class="wrap">'+
+    '<span class="eyebrow">A combined decision game \u00b7 ten rounds, five directives each</span>'+
+    '<h1 style="font-size:44px;line-height:1.05;letter-spacing:-.02em;margin-top:14px">The Main<br><em class="house">Effort</em>.</h1>'+
+    '<div class="hero-split">'+
+      '<div>'+
+        '<p class="lede">You command '+OP.name+'. A landslide has cut the road to a settlement of 120 people. Each round presents five possible directives \u2014 you don\u2019t pick one branch, you commit to a combination of them.</p>'+
+        '<p style="font-size:15px;line-height:1.6;color:var(--ink-70)">Ten rounds. Three check-ins with your own command post, and it doesn\u2019t have to wait for the end to act on what it hears. What you concentrate on, and what you leave dispersed, is the whole game.</p>'+
+        '<div class="aside"><p>You will see three numbers at every check-in. The other four are working just as hard.</p></div>'+
+        '<hr class="rule">'+
+        '<span class="meta">Read on \u2193 \u00b7 what you\u2019re being scored on</span>'+
+      '</div>'+
+      '<div>'+
+        '<span class="eyebrow">What command is weighing</span>'+
+        '<table class="deftable" style="margin-top:10px">'+
+          '<tr><td>Mission Progress</td><td>real advancement</td></tr>'+
+          '<tr><td>Operational Agility</td><td>freedom to change plan</td></tr>'+
+          '<tr><td>Reserve &amp; Freedom of Action</td><td>uncommitted capacity</td></tr>'+
+          '<tr><td>Risk Exposure</td><td>can end this alone</td></tr>'+
+          '<tr><td>Sustainability</td><td>stores, fatigue, pace</td></tr>'+
+          '<tr><td>Information Uncertainty</td><td>how much unresolved</td></tr>'+
+          '<tr><td>Decision Coherence</td><td>do choices reinforce</td></tr>'+
+        '</table>'+
+      '</div>'+
+    '</div>'+
+    '<div class="section-deep" style="margin-top:36px">'+
+      '<span class="eyebrow">The force at your disposal</span>'+
+      '<h2 style="font-size:26px;line-height:1.2;letter-spacing:-.015em;margin:10px 0 18px;max-width:24ch">Fifty-five people, one vehicle, and a reserve that only shrinks once you spend it.</h2>'+
+      '<div class="mixbar">'+forceMix.map(function(x){return '<span style="width:'+(x[1]/forceTotal*100).toFixed(1)+'%;background:'+x[2]+'"></span>';}).join("")+'</div>'+
+      '<div class="mix-legend">'+forceMix.map(function(x){return '<span class="mix-key"><span class="mix-swatch" style="background:'+x[2]+'"></span>'+x[0]+' \u00b7 '+x[1]+'</span>';}).join("")+'</div>'+
+      '<div class="source">Reserve is the largest single element and the one every round tempts you to spend. A second team, with its own bridging and medical capability, arrives partway through.</div>'+
+    '</div>'+
+    '<div style="margin-top:36px">'+
+      '<span class="eyebrow">The conditions you inherit</span>'+
+      '<h2 style="font-size:26px;line-height:1.2;letter-spacing:-.015em;margin:10px 0 20px;max-width:24ch">Five directives a round. What you combine is the decision.</h2>'+
+      '<div class="factgrid">'+
+        FACTS.map(function(f){return '<div><div class="fact-fig">'+f.fig+'</div><p class="fact-txt">'+f.txt+'</p></div>';}).join("")+
+      '</div>'+
+      '<div class="source">'+FACTS_NOTE+'</div>'+
+    '</div>'+
+    '<div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-top:34px">'+
+      '<button class="btn" id="start">Take command \u2192</button>'+
+      '<span class="meta">Ten rounds \u00b7 seven minutes</span>'+
+    '</div>'+
+  '</div>';
+  toTop();
+  $("#start").onclick=function(){ renderBar(); screenDecision(); };
+}
+function screenDecision(){
+  const d=DECISIONS[S.i];
+  renderBar();
+  app().innerHTML='<div class="wrap wide">'+
+    '<div style="display:flex;justify-content:space-between;align-items:baseline">'+
+      '<span class="eyebrow">'+d.code+' \u00b7 '+d.eyebrow+'</span><span class="meta">'+String(S.i+1).padStart(2,"0")+' OF 10</span>'+
+    '</div>'+
+    '<h2 style="font-size:21px;margin-top:6px">'+d.title+'</h2>'+
+    '<div class="slide-grid">'+
+      '<div class="slide-left">'+
+        '<p class="context">'+d.context+'</p>'+
+        '<div class="directives"><span class="dl">Directives on the table</span><ol>'+
+          d.directives.map(function(x){return '<li>'+x+'</li>';}).join("")+
+        '</ol></div>'+
+      '</div>'+
+      '<div class="slide-right">'+
+        '<span class="question">Which combination do you commit to?</span>'+
+        '<div class="cards" id="cards">'+
+          d.options.map(function(o,k){return '<button class="card" data-k="'+k+'" tabindex="0"><span class="k">'+(k+1)+'</span><span class="t">'+o.label+'</span><span class="b">'+o.body+'</span></button>';}).join("")+
+        '</div>'+
+        '<div id="after"></div>'+
+      '</div>'+
+    '</div>'+
+  '</div>';
+  document.querySelectorAll(".card").forEach(function(b){ b.onclick=function(){select(+b.dataset.k);}; });
+  S.awaiting=false; S.selected=null;
+  toTop();
+}
+function select(k){
+  if(S.awaiting) return;
+  S.selected=k;
+  document.querySelectorAll(".card").forEach(function(b){b.classList.toggle("chosen", +b.dataset.k===k);});
+  
+  const o = DECISIONS[S.i].options[k];
+  const dcDelta = (o.d && o.d.dc) || 0;
+  let warnHTML = "";
+  if (dcDelta < 0) {
+    warnHTML = '<div class="coherence-warn">Notice: This option contains conflicting directives or dilutes focus (Coherence penalty: '+dcDelta+').</div>';
+  }
+  
+  $("#after").innerHTML='<div class="confirmbar">'+
+    '<button class="btn" id="confirm">Commit this combination \u2192</button>'+
+    '<span class="meta">Nothing happens until you confirm</span>'+
+    '</div>' + warnHTML;
+  $("#confirm").onclick=function(){choose(k);};
+}
+function choose(k){
+  if(S.awaiting) return;
+  const d=DECISIONS[S.i];
+  const before={mp:S.mp, re:S.re, dc:S.dc, evac:S.evac, reserve:S.reserve, general:S.general, medical:S.medical, rfa:S.rfa, sus:S.sus};
+  const o=applyChoice(k);
+  S.awaiting=true;
+  document.querySelectorAll(".card").forEach(function(b){ b.classList.add("locked"); if(+b.dataset.k===k) b.classList.add("chosen"); b.disabled=true; });
+  if (S.re>=SAFE_RE && !S.earlyEndKey) S.earlyEndKey="catastrophic";
+  renderBar();
+  const fx=[];
+  function push(label,now,prev,digits){ const v=now-prev; if(Math.abs(v)<0.5) return;
+    fx.push('<span class="'+(v>0?'up':'down')+'">'+label+' '+(v>0?'+':'\u2212')+Math.abs(v).toFixed(digits)+'</span>'); }
+  push("Evacuated", S.evac, before.evac, 0);
+  push("Progress", S.mp, before.mp, 0);
+  push("Risk", S.re, before.re, 0);
+  push("Coherence", S.dc, before.dc, 0);
+  push("Reserve", S.reserve, before.reserve, 0);
+  push("Stores", S.general, before.general, 0);
+  push("Medical", S.medical, before.medical, 0);
+  
+  $("#after").innerHTML='<div class="wire">'+
+    '<span class="src">Field note \u00b7 '+d.code+'</span>'+
+    '<p>'+o.wire+'</p>'+
+    '<div class="fx">'+fx.join("")+'</div>'+
+    '<div style="margin-top:14px"><button class="btn ghost" id="cont">Continue \u2192</button></div>'+
+  '</div>';
+  $("#cont").onclick=afterChoice;
+}
+function afterChoice(){
+  S.awaiting=false;
+  const n=S.i+1; S.queue=[];
+  const ri=REVIEW_AFTER.indexOf(n);
+  if(ri>=0) S.queue.push({type:"review", idx:ri});
+  S.i++; nextScreen();
+}
+function nextScreen(){
+  if (S.earlyEndKey) return screenReveal();
+  if(S.queue.length){ const item=S.queue.shift(); return screenReview(item.idx); }
+  if(S.i>=DECISIONS.length) return screenReveal();
+  screenDecision();
+}
+function screenReview(idx){
+  const r=REVIEWS[idx];
+  const cc=commandConfidence();
+  let band, key=null;
+  if (S.re>=SAFE_RE){ band="fired"; key="catastrophic"; }
+  else if (S.dc<=DC_FLOOR){ band="fired"; key="fractured"; }
+  else if (cc<CC_FLOOR){ band="fired"; key="relieved"+(idx+1); }
+  else if (cc>=CC_GOOD) band="good";
+  else if (cc<CC_WARN) band="warn";
+  else band="ok";
+  if (key){ S.earlyEndKey=key; S.firedAt=idx; }
+  S.reviewBands[idx]=band;
+  const textKey = key==="catastrophic"?"catastrophic":(key&&key.indexOf("relieved")===0)?"fired":key==="fractured"?"fractured":band;
+  app().innerHTML='<div class="wrap">'+
+    '<span class="eyebrow">'+r.code+' \u00b7 '+r.title+'</span>'+
+    '<div style="margin-top:10px"><span class="stamp '+(band==='fired'?'fired':band==='good'?'good':band==='warn'?'warn':'')+'">'+(band==='fired'?'Relieved':band==='good'?'Confidence is high':band==='warn'?'Confidence is low':'Noted')+'</span></div>'+
+    '<h2 style="font-size:26px;margin-top:14px">Command confidence <span class="num" style="color:var(--wine)">'+Math.round(cc)+'</span> of 100.</h2>'+
+    '<p class="quote">'+r[textKey]+'</p>'+
+    '<table class="deftable" style="margin-top:16px">'+
+      '<tr><td>Civilians evacuated</td><td>'+S.evac+' / 120</td></tr>'+
+      '<tr><td>Mission progress</td><td>'+Math.round(S.mp)+'</td></tr>'+
+      '<tr><td>Operational agility</td><td>'+Math.round(S.oa)+'</td></tr>'+
+      '<tr><td>Reserve &amp; freedom of action</td><td>'+Math.round(S.rfa)+'</td></tr>'+
+      '<tr><td>Risk exposure</td><td>'+Math.round(S.re)+'</td></tr>'+
+      '<tr><td>Sustainability</td><td>'+Math.round(S.sus)+'</td></tr>'+
+      '<tr><td>Information uncertainty</td><td>'+Math.round(S.iu)+'</td></tr>'+
+      '<tr><td>Decision coherence</td><td>'+Math.round(S.dc)+'</td></tr>'+
+      '<tr><td>Reserve personnel</td><td>'+S.reserve+' / 20</td></tr>'+
+      '<tr><td>General stores</td><td>'+Math.round(S.general)+'</td></tr>'+
+      '<tr><td>Medical stores</td><td>'+Math.round(S.medical)+'</td></tr>'+
+    '</table>'+
+    '<div style="margin-top:20px"><button class="btn" id="cont">'+(band==="fired"?"See how it ended \u2192":"Continue \u2192")+'</button></div>'+
+  '</div>';
+  toTop(); $("#cont").onclick=nextScreen;
+}
+function screenReveal(){
+  $("#bar").hidden=true;
+  const R=finalScores(); const E=ENDINGS[R.key]; const fired=!!S.earlyEndKey;
+  app().innerHTML='<div class="wrap">'+
+    '<span class="eyebrow">The operation, resolved</span>'+
+    '<div style="margin-top:12px"><span class="stamp '+(fired?'fired':(R.key==='textbook'||R.key==='quiet')?'good':'')+'">'+E.tag+'</span></div>'+
+    '<h2 style="font-size:30px;line-height:1.15;margin-top:16px">'+E.head+'</h2>'+
+    '<div class="kpis">'+
+      '<div class="kpi"><div class="f">'+S.evac+' / 120</div><div class="l">Civilians evacuated</div>'+
+        '<span class="s '+(S.evac>=80?'v-hit':'v-miss')+'">'+(S.evac>=80?"Strong":"Fell short")+'</span></div>'+
+      '<div class="kpi"><div class="f">'+Math.round(S.re)+'</div><div class="l">Risk exposure</div>'+
+        '<span class="s '+(S.re<=45?'v-hit':'v-miss')+'">'+(S.re<=45?"Managed":"Unmanaged")+'</span></div>'+
+      '<div class="kpi"><div class="f">'+Math.round(R.cc)+'</div><div class="l">Command confidence</div>'+
+        '<span class="s '+(R.cc>=50?'v-hit':'v-miss')+'">'+(R.cc>=50?"Held":"Lost")+'</span></div>'+
+    '</div>'+
+    '<p style="font-size:15.5px;line-height:1.7;color:var(--ink-70);margin-top:24px">'+E.body+'</p>'+
+    '<div style="background:var(--panel-2);border-left:2px solid var(--marigold);padding:14px 18px;margin-top:18px">'+
+      '<p style="font-family:var(--disp);font-size:17px;margin:0">'+E.lesson+'</p>'+
+    '</div>'+
+    '<hr class="rule">'+
+    '<span class="eyebrow">Full parameter reading</span>'+
+    '<table class="deftable" style="margin-top:10px">'+
+      '<tr><td>Mission progress</td><td>'+Math.round(S.mp)+' / 100</td></tr>'+
+      '<tr><td>Operational agility</td><td>'+Math.round(S.oa)+' / 100</td></tr>'+
+      '<tr><td>Reserve &amp; freedom of action</td><td>'+Math.round(S.rfa)+' / 100</td></tr>'+
+      '<tr><td>Risk exposure</td><td>'+Math.round(S.re)+' / 100</td></tr>'+
+      '<tr><td>Sustainability</td><td>'+Math.round(S.sus)+' / 100</td></tr>'+
+      '<tr><td>Information uncertainty</td><td>'+Math.round(S.iu)+' / 100</td></tr>'+
+      '<tr><td>Decision coherence</td><td>'+Math.round(S.dc)+' / 100</td></tr>'+
+      '<tr><td>Derived tempo</td><td>'+Math.round(R.t)+' / 100</td></tr>'+
+      '<tr><td>Reserve personnel remaining</td><td>'+S.reserve+' / 20</td></tr>'+
+      '<tr><td>General stores remaining</td><td>'+Math.round(S.general)+'</td></tr>'+
+      '<tr><td>Medical stores remaining</td><td>'+Math.round(S.medical)+'</td></tr>'+
+    '</table>'+
+    '<hr class="rule">'+
+    '<span class="eyebrow">What this game was actually testing</span>'+
+    '<div class="lesson-panel" style="margin-top:12px"><ol>'+LESSONS.map(function(l){return '<li>'+l+'</li>';}).join("")+'</ol></div>'+
+    '<div style="margin-top:30px"><button class="btn" id="again">Play again</button></div>'+
+  '</div>';
+  toTop();
+  $("#again").onclick=function(){ reset(); screenBrief(); };
+}
+document.addEventListener("keydown", function(e){
+  if(e.metaKey||e.ctrlKey||e.altKey) return;
+  if(e.key==="Enter"){ 
+    const c = $("#confirm");
+    if (c) { e.preventDefault(); c.click(); return; }
+    const b = $("#cont");
+    if (b) { e.preventDefault(); b.click(); return; }
+  }
+  if(/^[1-5]$/.test(e.key) && !S.awaiting){
+    const b=document.querySelector('.card[data-k="'+(+e.key-1)+'"]');
+    if(b && !b.disabled){ e.preventDefault(); b.click(); }
+  }
+});
+window.__run=function(seq){
+  reset();
+  for(let n=0;n<seq.length && n<DECISIONS.length;n++){
+    S.i=n; applyChoice(seq[n]);
+    if (S.re>=SAFE_RE && !S.earlyEndKey) S.earlyEndKey="catastrophic";
+    const ri=REVIEW_AFTER.indexOf(n+1);
+    if(ri>=0){
+      const cc=commandConfidence();
+      if (S.re>=SAFE_RE && !S.earlyEndKey) S.earlyEndKey="catastrophic";
+      else if (cc<CC_FLOOR && !S.earlyEndKey){ S.earlyEndKey="relieved"+(ri+1); S.firedAt=ri; }
+      else if (S.dc<=DC_FLOOR && !S.earlyEndKey){ S.earlyEndKey="fractured"; S.firedAt=ri; }
+    }
+    if (S.earlyEndKey) break;
+  }
+  const r=finalScores();
+  return {ending:r.key, cc:Math.round(r.cc), t:Math.round(r.t), mp:Math.round(S.mp), re:Math.round(S.re), dc:Math.round(S.dc), evac:S.evac, firedAt:S.firedAt};
+};
+reset();
+screenBrief();
+
+</script>
+</body>
+</html>
